@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 酒馆 Tavern Agents</title>
+  <style>
+    :root {
+      --black: #090604;
+      --night: #15100c;
+      --oak: #2b1a0f;
+      --oak-2: #3b2414;
+      --paper: #caa56a;
+      --paper-dark: #8d683a;
+      --gold: #d7a84d;
+      --amber: #ffbd58;
+      --ember: #d15f2b;
+      --red: #b64131;
+      --green: #7ea05a;
+      --muted: #b89a73;
+      --text: #f4dec0;
+      --dim: #93785a;
+      --shadow: rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(209, 95, 43, .25), transparent 26%),
+        radial-gradient(circle at 82% 12%, rgba(215, 168, 77, .17), transparent 28%),
+        radial-gradient(circle at 50% 110%, rgba(80, 42, 14, .75), transparent 38%),
+        linear-gradient(135deg, #070504 0%, #1b0f08 46%, #050403 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 42px 42px, 42px 42px;
+      mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(1560px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 20px;
+      padding: 22px 24px;
+      border: 1px solid rgba(215,168,77,.28);
+      border-radius: 26px;
+      background:
+        linear-gradient(120deg, rgba(59,36,20,.86), rgba(13,9,6,.88)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 18px);
+      box-shadow: 0 24px 80px var(--shadow), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .brand { display: flex; gap: 16px; align-items: center; }
+
+    .sigil {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #2b1608;
+      background: radial-gradient(circle at 35% 25%, #ffe4a0, var(--gold) 54%, #7a421b 100%);
+      box-shadow: 0 0 32px rgba(255,189,88,.26), inset 0 -7px 14px rgba(67,31,8,.42);
+      font-size: 34px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 54px);
+      line-height: 1;
+      letter-spacing: .03em;
+      text-shadow: 0 2px 0 #3b210f, 0 0 24px rgba(255,189,88,.18);
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 760px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      padding: 12px 16px;
+      border: 1px solid rgba(215,168,77,.33);
+      border-radius: 999px;
+      background: rgba(8, 5, 3, .54);
+      color: var(--paper);
+      box-shadow: inset 0 0 18px rgba(215,168,77,.07);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--dim);
+      box-shadow: 0 0 0 3px rgba(147,120,90,.15);
+    }
+
+    .status-dot.running {
+      background: var(--amber);
+      box-shadow: 0 0 18px var(--amber), 0 0 0 5px rgba(255,189,88,.13);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 50% { transform: scale(1.25); opacity: .72; } }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 430px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid rgba(215,168,77,.24);
+      border-radius: var(--radius);
+      background: rgba(21, 13, 8, .78);
+      box-shadow: 0 18px 55px var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+      overflow: hidden;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 15px 18px;
+      color: #ffe2ad;
+      background: linear-gradient(90deg, rgba(109,61,24,.68), rgba(26,16,10,.55));
+      border-bottom: 1px solid rgba(215,168,77,.18);
+      font-weight: 700;
+      letter-spacing: .06em;
+    }
+
+    .controls {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 140px 170px;
+      gap: 14px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      color: var(--paper);
+      font-size: 13px;
+      margin: 0 0 7px;
+      letter-spacing: .04em;
+    }
+
+    textarea, input, select {
+      width: 100%;
+      color: var(--text);
+      border: 1px solid rgba(215,168,77,.28);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(7,5,4,.82), rgba(36,22,13,.72));
+      padding: 11px 12px;
+      outline: none;
+      font: inherit;
+      box-shadow: inset 0 2px 14px rgba(0,0,0,.34);
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: rgba(255,189,88,.72);
+      box-shadow: 0 0 0 3px rgba(255,189,88,.11), inset 0 2px 14px rgba(0,0,0,.34);
+    }
+
+    textarea { resize: vertical; min-height: 86px; }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid rgba(255,226,173,.24);
+      color: #2a1608;
+      border-radius: 999px;
+      padding: 11px 16px;
+      font-family: Georgia, "Noto Serif SC", serif;
+      font-weight: 800;
+      letter-spacing: .04em;
+      background: linear-gradient(180deg, #ffd782, #b9792b 52%, #7a3e17);
+      box-shadow: 0 8px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.42);
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 14px 28px rgba(0,0,0,.32), 0 0 24px rgba(255,189,88,.17), inset 0 1px 0 rgba(255,255,255,.45);
+    }
+
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.35); }
+
+    .ghost {
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(80,45,21,.98), rgba(30,18,11,.98));
+    }
+
+    .danger {
+      color: #ffe5dc;
+      background: linear-gradient(180deg, #bd513d, #6e2119);
+    }
+
+    .chat-panel {
+      min-height: 680px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-scroll {
+      flex: 1;
+      height: 560px;
+      min-height: 420px;
+      overflow: auto;
+      padding: 22px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(215,168,77,.08), transparent 46%),
+        linear-gradient(180deg, rgba(62,39,23,.35), rgba(11,8,6,.62));
+    }
+
+    .empty {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--dim);
+      border: 1px dashed rgba(215,168,77,.25);
+      border-radius: 18px;
+      background: rgba(0,0,0,.16);
+      padding: 30px;
+    }
+
+    .message {
+      position: relative;
+      margin: 0 0 14px;
+      padding: 15px 16px 14px;
+      border-left: 5px solid var(--agent-color, var(--gold));
+      border-radius: 16px;
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--agent-color, var(--gold)) 16%, transparent), transparent 42%),
+        linear-gradient(180deg, rgba(46,29,17,.9), rgba(16,11,8,.92));
+      box-shadow: 0 10px 30px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.06);
+      animation: rise .28s ease both;
+    }
+
+    @supports not (color: color-mix(in srgb, red 20%, transparent)) {
+      .message { background: linear-gradient(180deg, rgba(46,29,17,.9), rgba(16,11,8,.92)); }
+    }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .message.error {
+      border-left-color: var(--red);
+      background: linear-gradient(180deg, rgba(92,24,20,.78), rgba(29,10,9,.92));
+    }
+
+    .message-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 9px;
+      color: var(--paper);
+      font-size: 13px;
+    }
+
+    .speaker {
+      color: #ffe0a3;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .message-content {
+      white-space: pre-wrap;
+      line-height: 1.72;
+      color: #f7e6ce;
+    }
+
+    .side { display: grid; gap: 20px; }
+
+    .agents-list {
+      padding: 14px;
+      display: grid;
+      gap: 13px;
+      max-height: 780px;
+      overflow: auto;
+    }
+
+    .agent-card {
+      border: 1px solid rgba(215,168,77,.22);
+      border-radius: 17px;
+      padding: 14px;
+      background:
+        linear-gradient(135deg, rgba(69,42,22,.74), rgba(15,10,7,.86));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+
+    .agent-card.speaking {
+      border-color: rgba(255,189,88,.92);
+      box-shadow: 0 0 0 3px rgba(255,189,88,.10), 0 0 28px rgba(255,189,88,.16);
+      transform: translateY(-1px);
+    }
+
+    .agent-head {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .agent-name {
+      font-weight: 900;
+      color: #ffe2ad;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      color: var(--paper);
+      background: rgba(0,0,0,.24);
+      border: 1px solid rgba(215,168,77,.18);
+      font-size: 12px;
+    }
+
+    .agent-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .agent-card textarea { min-height: 92px; grid-column: 1 / -1; }
+
+    .switch-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--gold);
+      box-shadow: none;
+    }
+
+    .mini-delete {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .hint {
+      padding: 14px 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+      border-top: 1px solid rgba(215,168,77,.13);
+      background: rgba(0,0,0,.16);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      z-index: 20;
+      padding: 12px 16px;
+      border-radius: 999px;
+      color: #241205;
+      font-weight: 900;
+      background: linear-gradient(180deg, #ffe0a0, #c78a36);
+      box-shadow: 0 14px 50px rgba(0,0,0,.42);
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 1120px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { grid-template-columns: 1fr; }
+      .agents-list { max-height: none; }
+    }
+
+    @media (max-width: 760px) {
+      .app { width: min(100% - 18px, 1560px); padding-top: 10px; }
+      header { grid-template-columns: 1fr; padding: 18px; border-radius: 20px; }
+      .brand { align-items: flex-start; }
+      .sigil { width: 52px; height: 52px; font-size: 28px; }
+      .controls { grid-template-columns: 1fr; padding: 14px; }
+      .button-row { padding: 0 14px 14px; }
+      .chat-scroll { height: 520px; padding: 14px; }
+      .agent-grid { grid-template-columns: 1fr; }
+      .panel-title { padding: 13px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="sigil" aria-hidden="true">🍺</div>
+        <div>
+          <h1>AI 酒馆 Tavern Agents</h1>
+          <p class="subtitle">让多位智能体在烛火、雨声与木桌边依次开口。所有调用均使用 OpenAI-compatible Chat Completions，纯前端单文件运行。</p>
+        </div>
+      </div>
+      <div class="status-pill" title="当前运行状态">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="runningStatus">炉火待燃，尚未开谈</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel chat-panel">
+        <div class="panel-title">
+          <span>酒馆大厅 · 对话记录</span>
+          <span id="messageCount" class="badge">0 条消息</span>
+        </div>
+        <div class="controls">
+          <div>
+            <label for="globalSetting">全局场景设定</label>
+            <textarea id="globalSetting">这里是一间位于边境小镇的中世纪奇幻酒馆，窗外下着雨，客人们围绕一封来自北境的神秘信件交谈。</textarea>
+          </div>
+          <div>
+            <label for="roundsInput">对话轮数</label>
+            <input id="roundsInput" type="number" min="1" step="1" value="3" />
+          </div>
+          <div>
+            <label for="intervalInput">每次发言间隔（毫秒）</label>
+            <input id="intervalInput" type="number" min="0" step="100" value="800" />
+          </div>
+        </div>
+        <div class="button-row">
+          <button id="startBtn" onclick="startConversation()">开始对话</button>
+          <button id="stopBtn" class="danger" onclick="stopConversation()">停止对话</button>
+          <button class="ghost" onclick="clearMessages()">清空聊天</button>
+          <button class="ghost" onclick="addAgent()">添加智能体</button>
+        </div>
+        <div id="chatScroll" class="chat-scroll"></div>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <div class="panel-title">
+            <span>智能体配置</span>
+            <span id="agentCount" class="badge">0 位</span>
+          </div>
+          <div id="agentsList" class="agents-list"></div>
+          <div class="hint">
+            API Base URL 固定为 <strong>https://ai2.hhhl.cc/v1</strong>，Key 固定为 <strong>sk-free</strong>。如模型不可用，可在每位智能体卡片中修改模型名。
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_URL = 'https://ai2.hhhl.cc/v1/chat/completions';
+    const API_KEY = 'sk-free';
+    const AGENT_COLORS = ['#d7a84d', '#6db5d8', '#b985df', '#7ea05a', '#d15f2b', '#d96c9e', '#9ccf86', '#dfc176'];
+
+    let agents = [
+      {
+        id: crypto.randomUUID(),
+        name: '酒保艾琳',
+        model: 'gpt-5.5',
+        systemPrompt: '你是暮色酒馆的酒保艾琳，温和机敏，善于从只言片语中察觉秘密。你熟悉边境传闻，常以一杯热麦酒和一句意味深长的话引导客人开口。',
+        temperature: 0.8,
+        maxTokens: 220,
+        enabled: true
+      },
+      {
+        id: crypto.randomUUID(),
+        name: '神秘旅人',
+        model: 'gpt-5.4',
+        systemPrompt: '你是披着旧斗篷的神秘旅人，刚从北境风雪中归来。你说话克制，带着警惕和疲惫，似乎知道那封信背后的危险。',
+        temperature: 0.9,
+        maxTokens: 220,
+        enabled: true
+      },
+      {
+        id: crypto.randomUUID(),
+        name: '流浪诗人',
+        model: 'gpt-5.4-mini',
+        systemPrompt: '你是流浪诗人，幽默、敏感又略带夸张。你喜欢用隐喻描述眼前之事，但不会长篇吟唱；你总能把紧张气氛化成一两句优雅的玩笑。',
+        temperature: 0.95,
+        maxTokens: 220,
+        enabled: true
+      }
+    ];
+
+    let messages = [];
+    let isRunning = false;
+    let shouldStop = false;
+    let currentSpeakingAgentId = null;
+
+    const agentsList = document.getElementById('agentsList');
+    const chatScroll = document.getElementById('chatScroll');
+    const startBtn = document.getElementById('startBtn');
+    const statusDot = document.getElementById('statusDot');
+    const runningStatus = document.getElementById('runningStatus');
+    const messageCount = document.getElementById('messageCount');
+    const agentCount = document.getElementById('agentCount');
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function setRunningUi(running, label) {
+      startBtn.disabled = running;
+      statusDot.classList.toggle('running', running);
+      runningStatus.textContent = label || (running ? '酒馆正在交谈中' : '炉火待燃，尚未开谈');
+    }
+
+    function renderAgents() {
+      agentCount.textContent = `${agents.length} 位`;
+      agentsList.innerHTML = agents.map((agent, index) => {
+        const speaking = agent.id === currentSpeakingAgentId ? 'speaking' : '';
+        const color = AGENT_COLORS[index % AGENT_COLORS.length];
+        return `
+          <article class="agent-card ${speaking}" style="border-left: 5px solid ${color}">
+            <div class="agent-head">
+              <div class="agent-name" title="${escapeHtml(agent.name)}">${escapeHtml(agent.name)}</div>
+              <label class="switch-line" title="是否启用">
+                <input type="checkbox" ${agent.enabled ? 'checked' : ''} onchange="updateAgent('${agent.id}', 'enabled', this.checked)" />启用
+              </label>
+              <button class="danger mini-delete" onclick="removeAgent('${agent.id}')">删除</button>
+            </div>
+            <div class="agent-grid">
+              <div>
+                <label>名称</label>
+                <input value="${escapeHtml(agent.name)}" oninput="updateAgent('${agent.id}', 'name', this.value)" />
+              </div>
+              <div>
+                <label>模型名</label>
+                <select onchange="updateAgent('${agent.id}', 'model', this.value)">
+                  ${modelOption('gpt-5.5', agent.model)}
+                  ${modelOption('gpt-5.4', agent.model)}
+                  ${modelOption('gpt-5.4-mini', agent.model)}
+                  ${modelOption('gpt-4o-mini', agent.model)}
+                  ${!['gpt-5.5','gpt-5.4','gpt-5.4-mini','gpt-4o-mini'].includes(agent.model) ? modelOption(agent.model, agent.model) : ''}
+                </select>
+              </div>
+              <div>
+                <label>temperature</label>
+                <input type="number" min="0" max="2" step="0.1" value="${Number(agent.temperature)}" oninput="updateAgent('${agent.id}', 'temperature', this.value)" />
+              </div>
+              <div>
+                <label>max_tokens</label>
+                <input type="number" min="1" step="1" value="${Number(agent.maxTokens)}" oninput="updateAgent('${agent.id}', 'maxTokens', this.value)" />
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <label>自定义模型名（可直接覆盖）</label>
+                <input value="${escapeHtml(agent.model)}" oninput="updateAgent('${agent.id}', 'model', this.value)" />
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <label>人格提示词 system prompt</label>
+                <textarea oninput="updateAgent('${agent.id}', 'systemPrompt', this.value)">${escapeHtml(agent.systemPrompt)}</textarea>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function modelOption(value, selected) {
+      return `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`;
+    }
+
+    function renderMessages() {
+      messageCount.textContent = `${messages.length} 条消息`;
+      if (messages.length === 0) {
+        chatScroll.innerHTML = `
+          <div class="empty">
+            <div>
+              <div style="font-size: 42px; margin-bottom: 12px;">🕯️</div>
+              <strong>酒馆还很安静。</strong><br />点击“开始对话”，让第一位智能体先举杯开口。
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      chatScroll.innerHTML = messages.map(msg => {
+        const agentIndex = Math.max(0, agents.findIndex(a => a.id === msg.agentId));
+        const color = msg.error ? '#b64131' : AGENT_COLORS[agentIndex % AGENT_COLORS.length];
+        return `
+          <article class="message ${msg.error ? 'error' : ''}" style="--agent-color: ${color}">
+            <div class="message-meta">
+              <span><span class="speaker">${escapeHtml(msg.agentName)}</span> · 第 ${escapeHtml(msg.round)} 轮</span>
+              <span>${escapeHtml(msg.time)}</span>
+            </div>
+            <div class="message-content">${escapeHtml(msg.content)}</div>
+          </article>
+        `;
+      }).join('');
+      chatScroll.scrollTop = chatScroll.scrollHeight;
+    }
+
+    function addAgent() {
+      agents.push({
+        id: crypto.randomUUID(),
+        name: `新客人${agents.length + 1}`,
+        model: 'gpt-5.4-mini',
+        systemPrompt: '你是一位刚走进酒馆的新客人，观察敏锐，说话自然，只发表自己的看法，不替别人发言。',
+        temperature: 0.8,
+        maxTokens: 220,
+        enabled: true
+      });
+      renderAgents();
+      showToast('已添加一位新智能体');
+    }
+
+    function removeAgent(agentId) {
+      if (isRunning) {
+        showToast('对话运行中暂不删除智能体');
+        return;
+      }
+      agents = agents.filter(agent => agent.id !== agentId);
+      renderAgents();
+    }
+
+    function updateAgent(agentId, field, value) {
+      const agent = agents.find(item => item.id === agentId);
+      if (!agent) return;
+      if (field === 'temperature') value = Number(value);
+      if (field === 'maxTokens') value = Math.max(1, parseInt(value || '1', 10));
+      if (field === 'enabled') value = Boolean(value);
+      agent[field] = value;
+      if (field === 'name' || field === 'model' || field === 'enabled') renderAgents();
+    }
+
+    async function startConversation() {
+      if (isRunning) return;
+
+      const enabledAgents = agents.filter(agent => agent.enabled);
+      const totalRounds = parseInt(document.getElementById('roundsInput').value, 10);
+      const interval = Math.max(0, parseInt(document.getElementById('intervalInput').value || '0', 10));
+
+      if (enabledAgents.length === 0) {
+        alert('请至少启用一个智能体。');
+        return;
+      }
+      if (!Number.isFinite(totalRounds) || totalRounds < 1) {
+        alert('请设置正确的对话轮数（至少为 1）。');
+        return;
+      }
+
+      isRunning = true;
+      shouldStop = false;
+      setRunningUi(true, '酒馆正在交谈中');
+
+      try {
+        for (let round = 1; round <= totalRounds; round++) {
+          for (const agent of enabledAgents) {
+            if (shouldStop) break;
+            currentSpeakingAgentId = agent.id;
+            setRunningUi(true, `正在发言：${agent.name}（第 ${round} 轮）`);
+            renderAgents();
+
+            const promptMessages = buildMessagesForAgent(agent);
+            try {
+              const content = await callAgent(agent, promptMessages);
+              messages.push({
+                id: crypto.randomUUID(),
+                agentId: agent.id,
+                agentName: agent.name || '未命名智能体',
+                content: content || '……',
+                round,
+                time: new Date().toLocaleTimeString(),
+                error: false
+              });
+            } catch (error) {
+              messages.push({
+                id: crypto.randomUUID(),
+                agentId: agent.id,
+                agentName: agent.name || '未命名智能体',
+                content: error.message || String(error),
+                round,
+                time: new Date().toLocaleTimeString(),
+                error: true
+              });
+            }
+            renderMessages();
+
+            if (shouldStop) break;
+            if (interval > 0) await sleep(interval);
+          }
+          if (shouldStop) break;
+        }
+      } finally {
+        isRunning = false;
+        currentSpeakingAgentId = null;
+        renderAgents();
+        setRunningUi(false, shouldStop ? '对话已停止，可再次开始' : '对话结束，可再次开始');
+      }
+    }
+
+    function stopConversation() {
+      shouldStop = true;
+      if (isRunning) setRunningUi(true, '正在停止：等待当前请求返回');
+      else setRunningUi(false, '炉火待燃，尚未开谈');
+    }
+
+    function clearMessages() {
+      messages = [];
+      renderMessages();
+      showToast('聊天记录已清空');
+    }
+
+    function buildMessagesForAgent(agent) {
+      const globalSetting = document.getElementById('globalSetting').value.trim();
+      const recentMessages = messages.slice(-30);
+      const historyText = recentMessages.length
+        ? recentMessages.map(msg => `${msg.agentName}：${msg.content}`).join('\n')
+        : '暂无对话记录，请你自然地开始发言。';
+
+      return [
+        {
+          role: 'system',
+          content: `你正在参与一个多智能体酒馆对话。\n\n【全局场景】\n${globalSetting}\n\n【你的角色】\n名字：${agent.name}\n人格设定：\n${agent.systemPrompt}\n\n【严格规则】\n1. 你只能扮演 ${agent.name}。\n2. 不要替其他角色说话。\n3. 不要输出其他角色的台词。\n4. 不要总结整个对话。\n5. 不要使用剧本格式批量续写。\n6. 只输出你当前这一轮的自然发言。\n7. 发言要符合你的角色人格。\n8. 每次发言控制在 120 字以内。\n9. 如果聊天刚开始，请自然地开启话题。\n`
+        },
+        {
+          role: 'user',
+          content: `以下是目前酒馆中的对话记录：\n\n${historyText}\n\n现在轮到你发言。请只输出你的角色当前这一轮的发言。`
+        }
+      ];
+    }
+
+    async function callAgent(agent, promptMessages) {
+      let response;
+      try {
+        response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: agent.model,
+            messages: promptMessages,
+            temperature: Number(agent.temperature),
+            max_tokens: Number(agent.maxTokens)
+          })
+        });
+      } catch (error) {
+        throw new Error(`网络请求失败：${error.message || String(error)}`);
+      }
+
+      let data;
+      const rawText = await response.text();
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch (_) {
+        data = { raw: rawText };
+      }
+
+      if (!response.ok) {
+        const info = data?.error?.message || data?.message || data?.raw || response.statusText || '未知错误';
+        throw new Error(`API 调用失败：状态码 ${response.status}，错误信息 ${info}`);
+      }
+
+      const content = data?.choices?.[0]?.message?.content;
+      if (typeof content !== 'string') {
+        throw new Error('API 调用失败：状态码 200，错误信息 返回内容格式不符合 data.choices[0].message.content');
+      }
+      return content.trim();
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    renderAgents();
+    renderMessages();
+    setRunningUi(false);
+  </script>
+</body>
+</html>
