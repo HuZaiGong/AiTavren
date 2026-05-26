@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>随机抽奖模拟开奖</title>
+  <style>
+    :root {
+      --ink: #271610;
+      --paper: rgba(255, 248, 229, 0.9);
+      --paper-strong: #fff8e7;
+      --ember: #ff7a18;
+      --ruby: #e73849;
+      --sapphire: #2677d8;
+      --emerald: #25a86f;
+      --gold: #ffcf45;
+      --violet: #7c3ff2;
+      --shadow: 0 26px 70px rgba(39, 22, 16, 0.28);
+      --radius: 30px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 15%, rgba(255, 213, 93, 0.5), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(124, 63, 242, 0.35), transparent 27%),
+        radial-gradient(circle at 50% 90%, rgba(231, 56, 73, 0.3), transparent 35%),
+        linear-gradient(135deg, #46191f 0%, #d4582c 45%, #f5b14b 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(115deg, rgba(255,255,255,.12) 1px, transparent 1px),
+        linear-gradient(25deg, rgba(0,0,0,.08) 1px, transparent 1px);
+      background-size: 52px 52px, 74px 74px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 80%);
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 34px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .brand, .home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      background: rgba(255, 248, 229, 0.72);
+      color: var(--ink);
+      text-decoration: none;
+      box-shadow: 0 12px 35px rgba(39, 22, 16, 0.14);
+      backdrop-filter: blur(14px);
+      font-weight: 800;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: inset 0 -5px 10px rgba(118, 69, 0, .2);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .hero-copy, .machine-card, .history-card, .disclaimer {
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-copy {
+      padding: clamp(28px, 5vw, 54px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-copy::after {
+      content: "49";
+      position: absolute;
+      right: -14px;
+      bottom: -38px;
+      font-size: clamp(120px, 18vw, 230px);
+      font-weight: 1000;
+      color: rgba(255, 122, 24, 0.12);
+      line-height: .8;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 8px 12px;
+      border: 1px solid rgba(39, 22, 16, 0.13);
+      border-radius: 999px;
+      background: rgba(255,255,255,.45);
+      font-size: 13px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    h1 {
+      margin: 24px 0 14px;
+      max-width: 720px;
+      font-size: clamp(36px, 7vw, 76px);
+      line-height: .92;
+      letter-spacing: -0.06em;
+    }
+
+    .hero-copy p {
+      max-width: 610px;
+      margin: 0;
+      color: rgba(39, 22, 16, 0.72);
+      font-size: 17px;
+      line-height: 1.85;
+      position: relative;
+      z-index: 1;
+    }
+
+    .machine-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .roller {
+      min-height: 208px;
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,.7), transparent 20%),
+        linear-gradient(145deg, #351016, #8a2d24 45%, #f3a13d);
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      border: 8px solid rgba(255, 248, 229, 0.55);
+      box-shadow: inset 0 18px 48px rgba(0,0,0,.32);
+    }
+
+    .roller::before,
+    .roller::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border: 2px dashed rgba(255,255,255,.32);
+      border-radius: 50%;
+      animation: spin 12s linear infinite;
+    }
+
+    .roller::after {
+      width: 140px;
+      height: 140px;
+      animation-duration: 7s;
+      animation-direction: reverse;
+    }
+
+    .rolling-balls {
+      position: relative;
+      width: 142px;
+      height: 142px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.16);
+      box-shadow: inset 0 0 26px rgba(255,255,255,.32), 0 18px 44px rgba(0,0,0,.24);
+    }
+
+    .rolling-balls span {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--paper-strong);
+      display: grid;
+      place-items: center;
+      font-weight: 1000;
+      color: #7a2318;
+      box-shadow: inset 0 -8px 13px rgba(0,0,0,.13), 0 10px 20px rgba(0,0,0,.2);
+      opacity: .94;
+    }
+
+    .rolling-balls.spin { animation: shake .44s linear infinite; }
+    .rolling-balls.spin span:nth-child(1) { animation: orbit1 .72s linear infinite; }
+    .rolling-balls.spin span:nth-child(2) { animation: orbit2 .61s linear infinite; }
+    .rolling-balls.spin span:nth-child(3) { animation: orbit3 .79s linear infinite; }
+    .rolling-balls.spin span:nth-child(4) { animation: orbit4 .67s linear infinite; }
+
+    .draw-stage {
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-label {
+      margin: 0 0 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: rgba(39,22,16,.72);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .balls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 68px;
+      align-items: center;
+    }
+
+    .ball {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: 1000;
+      text-shadow: 0 2px 6px rgba(0,0,0,.28);
+      box-shadow: inset 0 -10px 14px rgba(0,0,0,.2), 0 12px 24px rgba(0,0,0,.2);
+      transform-origin: center bottom;
+      animation: reveal .62s cubic-bezier(.2, 1.65, .36, 1) both;
+      position: relative;
+    }
+
+    .ball::before {
+      content: "";
+      position: absolute;
+      width: 42%;
+      height: 22%;
+      border-radius: 50%;
+      background: rgba(255,255,255,.5);
+      left: 14px;
+      top: 9px;
+      transform: rotate(-25deg);
+    }
+
+    .red { background: linear-gradient(145deg, #ff6874, var(--ruby)); }
+    .blue { background: linear-gradient(145deg, #6fb9ff, var(--sapphire)); }
+    .green { background: linear-gradient(145deg, #6be1a7, var(--emerald)); }
+    .special {
+      background: linear-gradient(145deg, #fff1a8, var(--gold) 42%, var(--violet));
+      box-shadow: inset 0 -10px 14px rgba(80, 34, 0, .24), 0 0 0 6px rgba(255,207,69,.2), 0 0 34px rgba(255,207,69,.82), 0 16px 34px rgba(124,63,242,.36);
+      animation: specialReveal .9s cubic-bezier(.2, 1.75, .26, 1) both;
+    }
+
+    .start-btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 22px;
+      padding: 18px 22px;
+      font-size: 18px;
+      font-weight: 1000;
+      color: #391100;
+      background: linear-gradient(135deg, #fff3a4, #ffb428 42%, #ff7a18);
+      box-shadow: 0 18px 32px rgba(127, 46, 12, .28), inset 0 2px 0 rgba(255,255,255,.56);
+      transition: transform .2s ease, filter .2s ease, opacity .2s ease;
+    }
+
+    .start-btn:hover { transform: translateY(-2px) scale(1.01); }
+    .start-btn:disabled { cursor: not-allowed; opacity: .58; filter: grayscale(.25); transform: none; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 230px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .history-card, .disclaimer { padding: 24px; }
+
+    .history-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h2 { margin: 0; font-size: 24px; letter-spacing: -0.03em; }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-empty {
+      padding: 22px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.38);
+      color: rgba(39,22,16,.65);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: minmax(120px, .8fr) 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.52);
+      border: 1px solid rgba(39,22,16,.08);
+    }
+
+    .time {
+      font-weight: 900;
+      color: rgba(39,22,16,.7);
+      font-size: 13px;
+    }
+
+    .mini-balls { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .mini {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 1000;
+      font-size: 12px;
+      box-shadow: inset 0 -5px 8px rgba(0,0,0,.18);
+    }
+
+    .disclaimer {
+      align-self: stretch;
+      background: rgba(39, 22, 16, 0.82);
+      color: #fff8e7;
+      line-height: 1.75;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .disclaimer::before {
+      content: "!";
+      position: absolute;
+      right: -8px;
+      bottom: -52px;
+      font-size: 180px;
+      font-weight: 1000;
+      color: rgba(255,207,69,.12);
+    }
+
+    .celebration {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -30px;
+      width: 9px;
+      height: 18px;
+      border-radius: 4px;
+      animation: fall 1.45s ease-in forwards;
+      opacity: .95;
+    }
+
+    .flash {
+      animation: pageGlow 1.1s ease-out;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shake { 25% { transform: translate(2px, -1px); } 50% { transform: translate(-1px, 2px); } 75% { transform: translate(1px, 1px); } }
+    @keyframes orbit1 { to { transform: rotate(360deg) translateX(48px) rotate(-360deg); } }
+    @keyframes orbit2 { to { transform: rotate(360deg) translateY(47px) rotate(-360deg); } }
+    @keyframes orbit3 { to { transform: rotate(-360deg) translateX(-44px) rotate(360deg); } }
+    @keyframes orbit4 { to { transform: rotate(-360deg) translateY(-43px) rotate(360deg); } }
+    @keyframes reveal {
+      0% { opacity: 0; transform: translateY(-30px) scale(.3) rotate(-18deg); filter: brightness(1.8); }
+      55% { opacity: 1; transform: translateY(0) scale(1.18) rotate(5deg); filter: brightness(1.4); }
+      75% { transform: translateY(-8px) scale(.96); }
+      100% { transform: translateY(0) scale(1); filter: brightness(1); }
+    }
+    @keyframes specialReveal {
+      0% { opacity: 0; transform: scale(.2) rotate(-40deg); filter: brightness(2); }
+      55% { opacity: 1; transform: scale(1.28) rotate(8deg); filter: brightness(1.6); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    @keyframes fall {
+      to { transform: translateY(calc(100vh + 80px)) rotate(540deg); opacity: 0; }
+    }
+    @keyframes pageGlow {
+      0% { box-shadow: inset 0 0 0 rgba(255,255,255,0); }
+      30% { box-shadow: inset 0 0 120px rgba(255, 244, 166, .75); }
+      100% { box-shadow: inset 0 0 0 rgba(255,255,255,0); }
+    }
+
+    @media (max-width: 840px) {
+      .hero, .result-grid { grid-template-columns: 1fr; }
+      .topbar { align-items: stretch; flex-direction: column; }
+      .brand, .home-link { justify-content: center; }
+      .history-item { grid-template-columns: 1fr; }
+      .ball { width: 52px; height: 52px; font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="celebration" class="celebration" aria-hidden="true"></div>
+
+  <main class="page">
+    <nav class="topbar" aria-label="页面导航">
+      <a class="brand" href="lottery.html" aria-label="随机抽奖模拟开奖首页">
+        <span class="brand-icon">🎲</span>
+        <span>随机抽奖模拟开奖</span>
+      </a>
+      <a class="home-link" href="index.html">返回 AI 酒馆首页</a>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Entertainment Draw · 1-49</div>
+        <h1>让号码球在光里逐个揭晓。</h1>
+        <p>
+          一个纯前端、无接口、无外部依赖的随机抽奖模拟器。每次从 1-49 中生成 6 个普通号码和 1 个特别号码，适合演示随机开奖动画与历史记录。
+        </p>
+      </div>
+
+      <section class="machine-card" aria-label="开奖控制台">
+        <div class="roller" aria-hidden="true">
+          <div id="rollingBalls" class="rolling-balls">
+            <span>?</span><span>?</span><span>?</span><span>?</span>
+          </div>
+        </div>
+        <button id="drawButton" class="start-btn">开始开奖</button>
+      </section>
+    </section>
+
+    <section class="result-grid">
+      <section class="history-card">
+        <div class="draw-stage" aria-live="polite">
+          <div>
+            <p class="section-label">普通号码</p>
+            <div id="normalBalls" class="balls-row"></div>
+          </div>
+          <div>
+            <p class="section-label">特别号码</p>
+            <div id="specialBall" class="balls-row"></div>
+          </div>
+        </div>
+
+        <div class="history-title" style="margin-top: 28px;">
+          <h2>最近 5 次开奖历史</h2>
+          <span id="historyCount" class="time">0 条</span>
+        </div>
+        <div id="historyList" class="history-list">
+          <div class="history-empty">还没有开奖历史。点击“开始开奖”，第一组号码会在这里留下记录。</div>
+        </div>
+      </section>
+
+      <aside class="disclaimer">
+        <h2>免责声明</h2>
+        <p>本页面仅用于娱乐和随机抽奖演示，不涉及真实彩票、投注或金钱交易。</p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    // 页面元素
+    const drawButton = document.getElementById('drawButton');
+    const normalBalls = document.getElementById('normalBalls');
+    const specialBall = document.getElementById('specialBall');
+    const rollingBalls = document.getElementById('rollingBalls');
+    const historyList = document.getElementById('historyList');
+    const historyCount = document.getElementById('historyCount');
+    const celebration = document.getElementById('celebration');
+
+    // 最近 5 次开奖历史，仅保存在当前页面内存中
+    const history = [];
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    function padNumber(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function getBallColorClass(number) {
+      if (number <= 16) return 'red';
+      if (number <= 33) return 'blue';
+      return 'green';
+    }
+
+    function createBall(number, extraClass = '') {
+      const ball = document.createElement('span');
+      ball.className = `ball ${extraClass || getBallColorClass(number)}`;
+      ball.textContent = padNumber(number);
+      return ball;
+    }
+
+    function createMiniBall(number, extraClass = '') {
+      const ball = document.createElement('span');
+      ball.className = `mini ${extraClass || getBallColorClass(number)}`;
+      ball.textContent = padNumber(number);
+      return ball;
+    }
+
+    // 从 1-49 中不重复抽取 7 个号码，前 6 个为普通号码，最后 1 个为特别号码
+    function drawNumbers() {
+      const pool = Array.from({ length: 49 }, (_, index) => index + 1);
+      const picked = [];
+
+      while (picked.length < 7) {
+        const index = Math.floor(Math.random() * pool.length);
+        picked.push(pool.splice(index, 1)[0]);
+      }
+
+      return {
+        normal: picked.slice(0, 6).sort((a, b) => a - b),
+        special: picked[6]
+      };
+    }
+
+    async function startDraw() {
+      drawButton.disabled = true;
+      drawButton.textContent = '开奖中...';
+      normalBalls.innerHTML = '';
+      specialBall.innerHTML = '';
+      rollingBalls.classList.add('spin');
+
+      const result = drawNumbers();
+
+      // 先展示滚动动画，再按顺序逐个揭晓普通号码
+      await sleep(900);
+      for (const number of result.normal) {
+        normalBalls.appendChild(createBall(number));
+        await sleep(420);
+      }
+
+      // 特别号码最后揭晓，使用更强的金色发光效果
+      await sleep(350);
+      specialBall.appendChild(createBall(result.special, 'special'));
+
+      await sleep(520);
+      rollingBalls.classList.remove('spin');
+      addHistory(result);
+      launchCelebration();
+
+      drawButton.disabled = false;
+      drawButton.textContent = '再次开奖';
+    }
+
+    function addHistory(result) {
+      history.unshift({
+        time: new Date().toLocaleString('zh-CN', { hour12: false }),
+        normal: result.normal,
+        special: result.special
+      });
+
+      if (history.length > 5) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      historyCount.textContent = `${history.length} 条`;
+
+      if (!history.length) {
+        historyList.innerHTML = '<div class="history-empty">还没有开奖历史。点击“开始开奖”，第一组号码会在这里留下记录。</div>';
+        return;
+      }
+
+      historyList.innerHTML = '';
+      history.forEach(record => {
+        const item = document.createElement('article');
+        item.className = 'history-item';
+
+        const time = document.createElement('div');
+        time.className = 'time';
+        time.textContent = record.time;
+
+        const miniBalls = document.createElement('div');
+        miniBalls.className = 'mini-balls';
+        record.normal.forEach(number => miniBalls.appendChild(createMiniBall(number)));
+
+        const special = createMiniBall(record.special, 'special');
+        special.title = '特别号码';
+
+        item.append(time, miniBalls, special);
+        historyList.appendChild(item);
+      });
+    }
+
+    // 轻量 CSS 彩带庆祝动画
+    function launchCelebration() {
+      document.body.classList.remove('flash');
+      void document.body.offsetWidth;
+      document.body.classList.add('flash');
+
+      celebration.innerHTML = '';
+      const colors = ['#ffcf45', '#e73849', '#2677d8', '#25a86f', '#7c3ff2', '#fff8e7'];
+
+      for (let index = 0; index < 42; index++) {
+        const confetti = document.createElement('span');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.background = colors[index % colors.length];
+        confetti.style.animationDelay = `${Math.random() * 0.26}s`;
+        confetti.style.animationDuration = `${1 + Math.random() * 0.9}s`;
+        confetti.style.transform = `rotate(${Math.random() * 180}deg)`;
+        celebration.appendChild(confetti);
+      }
+
+      setTimeout(() => {
+        celebration.innerHTML = '';
+        document.body.classList.remove('flash');
+      }, 2200);
+    }
+
+    drawButton.addEventListener('click', startDraw);
+  </script>
+</body>
+</html>
