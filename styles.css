@@ -100,6 +100,34 @@
       max-width: 760px;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 1px solid rgba(215,168,77,.27);
+      border-radius: 999px;
+      color: #ffe2ad;
+      text-decoration: none;
+      background: rgba(8, 5, 3, .38);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .home-link:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,189,88,.68);
+      background: rgba(215,168,77,.1);
+    }
+
     .status-pill {
       display: inline-flex;
       align-items: center;
@@ -589,6 +617,7 @@
     @media (max-width: 760px) {
       .app { width: min(100% - 18px, 1560px); padding-top: 10px; }
       header { grid-template-columns: 1fr; padding: 18px; border-radius: 20px; }
+      .header-actions { justify-content: flex-start; }
       .brand { align-items: flex-start; }
       .sigil { width: 52px; height: 52px; font-size: 28px; }
       .controls { grid-template-columns: 1fr; padding: 14px; }

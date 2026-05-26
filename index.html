@@ -4,115 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI 酒馆 Tavern Agents</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="home.css" />
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="brand">
-        <div class="sigil" aria-hidden="true">🍺</div>
-        <div>
-          <h1>AI 酒馆 Tavern Agents</h1>
-          <p class="subtitle">让多位智能体在烛火、雨声与木桌边依次开口。所有调用均使用 OpenAI-compatible Chat Completions，HTML/CSS/JS 已分离，可直接静态托管。</p>
+  <main class="home-shell">
+    <nav class="top-nav" aria-label="主导航">
+      <a class="brand-mark" href="index.html" aria-label="返回首页">
+        <span class="mark-icon">🍺</span>
+        <span>AI 酒馆</span>
+      </a>
+      <div class="nav-links">
+        <a href="tavern.html">进入酒馆</a>
+        <a href="https://github.com/HuZaiGong/AiTavren" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Tavern Agents · 多智能体角色聊天室</div>
+        <h1>在雨夜酒馆里，听见 AI 角色轮流开口。</h1>
+        <p>
+          「AI 酒馆 Tavern Agents」是一个纯前端静态应用。你可以创建多个角色，为他们设置人格与模型参数，
+          让他们在同一个奇幻场景中按顺序对话，并通过模拟终端观察 AI 输出过程。
+        </p>
+        <div class="hero-actions">
+          <a class="primary-action" href="tavern.html">进入酒馆应用</a>
+          <a class="secondary-action" href="#features">查看功能</a>
         </div>
       </div>
-      <div class="status-pill" title="当前运行状态">
-        <span id="statusDot" class="status-dot"></span>
-        <span id="runningStatus">炉火待燃，尚未开谈</span>
+
+      <div class="hero-card" aria-label="酒馆预览卡片">
+        <div class="card-top">
+          <span></span><span></span><span></span>
+          <strong>暮色酒馆 · 预览</strong>
+        </div>
+        <div class="dialogue-preview">
+          <article>
+            <b>酒保艾琳</b>
+            <p>雨声敲着窗，诸位若是为北境来信而来，最好先暖暖手。</p>
+          </article>
+          <article>
+            <b>神秘旅人</b>
+            <p>那封信不该被打开。至少，不该在钟声三响之前。</p>
+          </article>
+          <article>
+            <b>流浪诗人</b>
+            <p>秘密像陈年麦酒，越封存越醉人，也越容易让人跌进地窖。</p>
+          </article>
+        </div>
       </div>
-    </header>
+    </section>
 
-    <main class="layout">
-      <section class="panel chat-panel">
-        <div class="panel-title">
-          <span>酒馆大厅 · 对话记录</span>
-          <span id="messageCount" class="badge">0 条消息</span>
-        </div>
-        <div class="controls">
-          <div>
-            <label for="globalSetting">全局场景设定</label>
-            <textarea id="globalSetting">这里是一间位于边境小镇的中世纪奇幻酒馆，窗外下着雨，客人们围绕一封来自北境的神秘信件交谈。</textarea>
-          </div>
-          <div>
-            <label for="roundsInput">对话轮数</label>
-            <input id="roundsInput" type="number" min="1" step="1" value="3" />
-          </div>
-          <div>
-            <label for="intervalInput">每次发言间隔（毫秒）</label>
-            <input id="intervalInput" type="number" min="0" step="100" value="800" />
-          </div>
-        </div>
-        <div class="button-row">
-          <button id="startBtn" onclick="startConversation()">开始对话</button>
-          <button id="stopBtn" class="danger" onclick="stopConversation()">停止对话</button>
-          <button class="ghost" onclick="clearMessages()">清空聊天</button>
-          <button class="ghost" onclick="addAgent()">添加智能体</button>
-        </div>
-        <div id="chatScroll" class="chat-scroll"></div>
-        <section class="terminal-panel" aria-label="AI 输出模拟终端">
-          <div class="terminal-topbar">
-            <div class="terminal-lights" aria-hidden="true"><span></span><span></span><span></span></div>
-            <strong>tavern-terminal</strong>
-            <button class="ghost terminal-clear" onclick="clearTerminal()">清空终端</button>
-          </div>
-          <pre id="terminalOutput" class="terminal-output"></pre>
-        </section>
-      </section>
+    <section id="features" class="feature-grid" aria-label="功能亮点">
+      <article class="feature-card">
+        <span>01</span>
+        <h2>多智能体轮流发言</h2>
+        <p>每一轮中，所有启用角色都会读取最新聊天记录并依次发言，形成连续上下文。</p>
+      </article>
+      <article class="feature-card">
+        <span>02</span>
+        <h2>角色人格可编辑</h2>
+        <p>支持手动添加智能体，配置名称、人格提示词、启用状态与角色风格。</p>
+      </article>
+      <article class="feature-card">
+        <span>03</span>
+        <h2>模型设置收纳</h2>
+        <p>模型名、temperature、max_tokens 已放入小齿轮菜单，主界面更干净。</p>
+      </article>
+      <article class="feature-card">
+        <span>04</span>
+        <h2>终端模拟输出</h2>
+        <p>内置 tavern-terminal，用终端日志与打字机效果显示请求和 AI 回复。</p>
+      </article>
+    </section>
 
-      <aside class="side">
-        <section class="panel">
-          <div class="panel-title">
-            <span>智能体配置</span>
-            <span id="agentCount" class="badge">0 位</span>
-          </div>
-          <form class="manual-agent-form" onsubmit="createAgentFromForm(event)">
-            <div class="form-title">
-              <span>手动添加智能体</span>
-              <details class="gear-menu add-gear">
-                <summary title="新增智能体模型设置" aria-label="新增智能体模型设置">⚙</summary>
-                <div class="gear-popover">
-                  <div class="gear-title">新增角色模型设置</div>
-                  <label for="newAgentModel">模型名</label>
-                  <input id="newAgentModel" value="gpt-5.4" required />
-                  <div class="gear-grid">
-                    <div>
-                      <label for="newAgentTemp">temperature</label>
-                      <input id="newAgentTemp" type="number" min="0" max="2" step="0.1" value="0.8" />
-                    </div>
-                    <div>
-                      <label for="newAgentMaxTokens">max_tokens</label>
-                      <input id="newAgentMaxTokens" type="number" min="1" step="1" value="220" />
-                    </div>
-                  </div>
-                </div>
-              </details>
-            </div>
-            <div class="agent-grid">
-              <div class="full-row">
-                <label for="newAgentName">名称</label>
-                <input id="newAgentName" placeholder="例如：矮人铁匠" required />
-              </div>
-              <div class="full-row">
-                <label for="newAgentPrompt">人格提示词 system prompt</label>
-                <textarea id="newAgentPrompt" placeholder="描述这个角色的身份、语气、目标与说话风格……" required></textarea>
-              </div>
-              <label class="switch-line full-row">
-                <input id="newAgentEnabled" type="checkbox" checked /> 添加后启用
-              </label>
-            </div>
-            <button type="submit">手动添加智能体</button>
-          </form>
-          <div id="agentsList" class="agents-list"></div>
-          <div class="hint">
-            API Base URL 固定为 <strong>https://ai2.hhhl.cc/v1</strong>，Key 固定为 <strong>sk-free</strong>。如模型不可用，可在每位智能体卡片中修改模型名。
-          </div>
-        </section>
-      </aside>
-    </main>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <script src="app.js"></script>
+    <section class="launch-strip">
+      <div>
+        <h2>准备好让角色入座了吗？</h2>
+        <p>无需安装，无需后端，点击即可打开酒馆主应用。</p>
+      </div>
+      <a class="primary-action" href="tavern.html">打开 Tavern Agents</a>
+    </section>
+  </main>
 </body>
 </html>
