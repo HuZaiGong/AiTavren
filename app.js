@@ -85,34 +85,38 @@ const API_URL = 'https://ai2.hhhl.cc/v1/chat/completions';
               <label class="switch-line" title="是否启用">
                 <input type="checkbox" ${agent.enabled ? 'checked' : ''} onchange="updateAgent('${agent.id}', 'enabled', this.checked)" />启用
               </label>
+              <details class="gear-menu">
+                <summary title="模型设置" aria-label="模型设置">⚙</summary>
+                <div class="gear-popover">
+                  <div class="gear-title">模型设置</div>
+                  <label>模型名</label>
+                  <select onchange="updateAgent('${agent.id}', 'model', this.value)">
+                    ${modelOption('gpt-5.5', agent.model)}
+                    ${modelOption('gpt-5.4', agent.model)}
+                    ${modelOption('gpt-5.4-mini', agent.model)}
+                    ${modelOption('gpt-4o-mini', agent.model)}
+                    ${!['gpt-5.5','gpt-5.4','gpt-5.4-mini','gpt-4o-mini'].includes(agent.model) ? modelOption(agent.model, agent.model) : ''}
+                  </select>
+                  <label>自定义模型名</label>
+                  <input value="${escapeHtml(agent.model)}" oninput="updateAgent('${agent.id}', 'model', this.value)" />
+                  <div class="gear-grid">
+                    <div>
+                      <label>temperature</label>
+                      <input type="number" min="0" max="2" step="0.1" value="${Number(agent.temperature)}" oninput="updateAgent('${agent.id}', 'temperature', this.value)" />
+                    </div>
+                    <div>
+                      <label>max_tokens</label>
+                      <input type="number" min="1" step="1" value="${Number(agent.maxTokens)}" oninput="updateAgent('${agent.id}', 'maxTokens', this.value)" />
+                    </div>
+                  </div>
+                </div>
+              </details>
               <button class="danger mini-delete" onclick="removeAgent('${agent.id}')">删除</button>
             </div>
             <div class="agent-grid">
-              <div>
+              <div class="full-row">
                 <label>名称</label>
                 <input value="${escapeHtml(agent.name)}" oninput="updateAgent('${agent.id}', 'name', this.value)" />
-              </div>
-              <div>
-                <label>模型名</label>
-                <select onchange="updateAgent('${agent.id}', 'model', this.value)">
-                  ${modelOption('gpt-5.5', agent.model)}
-                  ${modelOption('gpt-5.4', agent.model)}
-                  ${modelOption('gpt-5.4-mini', agent.model)}
-                  ${modelOption('gpt-4o-mini', agent.model)}
-                  ${!['gpt-5.5','gpt-5.4','gpt-5.4-mini','gpt-4o-mini'].includes(agent.model) ? modelOption(agent.model, agent.model) : ''}
-                </select>
-              </div>
-              <div>
-                <label>temperature</label>
-                <input type="number" min="0" max="2" step="0.1" value="${Number(agent.temperature)}" oninput="updateAgent('${agent.id}', 'temperature', this.value)" />
-              </div>
-              <div>
-                <label>max_tokens</label>
-                <input type="number" min="1" step="1" value="${Number(agent.maxTokens)}" oninput="updateAgent('${agent.id}', 'maxTokens', this.value)" />
-              </div>
-              <div class="full-row">
-                <label>自定义模型名（可直接覆盖）</label>
-                <input value="${escapeHtml(agent.model)}" oninput="updateAgent('${agent.id}', 'model', this.value)" />
               </div>
               <div class="full-row">
                 <label>人格提示词 system prompt</label>

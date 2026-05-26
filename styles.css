@@ -381,6 +381,10 @@
     }
 
     .manual-agent-form .form-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
       margin-bottom: 12px;
       color: #ffe2ad;
       font-weight: 900;
@@ -388,6 +392,82 @@
     }
 
     .manual-agent-form button { margin-top: 12px; width: 100%; }
+
+    .gear-menu {
+      position: relative;
+      z-index: 5;
+    }
+
+    .gear-menu summary {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      list-style: none;
+      cursor: pointer;
+      border: 1px solid rgba(215,168,77,.28);
+      border-radius: 999px;
+      color: #ffe2ad;
+      background: linear-gradient(180deg, rgba(80,45,21,.98), rgba(30,18,11,.98));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .gear-menu summary::-webkit-details-marker { display: none; }
+
+    .gear-menu summary:hover {
+      transform: rotate(18deg) translateY(-1px);
+      border-color: rgba(255,189,88,.7);
+      box-shadow: 0 0 18px rgba(255,189,88,.12), inset 0 1px 0 rgba(255,255,255,.12);
+    }
+
+    .gear-menu[open] summary {
+      border-color: rgba(255,189,88,.85);
+      box-shadow: 0 0 0 3px rgba(255,189,88,.1);
+    }
+
+    .gear-popover {
+      position: absolute;
+      top: calc(100% + 9px);
+      right: 0;
+      width: min(330px, calc(100vw - 34px));
+      padding: 14px;
+      border: 1px solid rgba(215,168,77,.32);
+      border-radius: 15px;
+      background:
+        linear-gradient(135deg, rgba(58,35,19,.98), rgba(8,6,5,.98));
+      box-shadow: 0 22px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
+    }
+
+    .gear-popover::before {
+      content: "";
+      position: absolute;
+      top: -7px;
+      right: 13px;
+      width: 12px;
+      height: 12px;
+      transform: rotate(45deg);
+      border-left: 1px solid rgba(215,168,77,.32);
+      border-top: 1px solid rgba(215,168,77,.32);
+      background: rgba(58,35,19,.98);
+    }
+
+    .gear-title {
+      margin-bottom: 10px;
+      color: #ffe2ad;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .gear-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .add-gear .gear-popover { right: 0; }
 
     .agents-list {
       padding: 14px;
@@ -415,7 +495,7 @@
 
     .agent-head {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr auto auto auto;
       gap: 9px;
       align-items: center;
       margin-bottom: 10px;
