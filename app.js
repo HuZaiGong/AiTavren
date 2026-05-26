@@ -403,6 +403,16 @@ const API_URL = 'https://ai2.hhhl.cc/v1/chat/completions';
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    function loadStoredGlobalSetting() {
+      const saved = localStorage.getItem('tavernGlobalSetting');
+      if (!saved) return;
+      const globalSettingInput = document.getElementById('globalSetting');
+      globalSettingInput.value = saved;
+      appendTerminalLine('已载入生成页选择的酒馆设定。', 'system');
+      localStorage.removeItem('tavernGlobalSetting');
+    }
+
+    loadStoredGlobalSetting();
     renderAgents();
     renderMessages();
     setRunningUi(false);

@@ -615,17 +615,36 @@
     }
 
     @media (max-width: 760px) {
-      .app { width: min(100% - 18px, 1560px); padding-top: 10px; }
-      header { grid-template-columns: 1fr; padding: 18px; border-radius: 20px; }
-      .header-actions { justify-content: flex-start; }
+      .app { width: min(100% - 18px, 1560px); padding-top: 10px; padding-bottom: 22px; }
+      header { grid-template-columns: 1fr; padding: 16px; border-radius: 20px; }
+      .header-actions { justify-content: flex-start; align-items: stretch; }
+      .home-link, .status-pill { min-height: 44px; }
       .brand { align-items: flex-start; }
       .sigil { width: 52px; height: 52px; font-size: 28px; }
+      h1 { font-size: clamp(28px, 10vw, 42px); }
+      .subtitle { font-size: 14px; line-height: 1.65; }
       .controls { grid-template-columns: 1fr; padding: 14px; }
-      .button-row { padding: 0 14px 14px; }
-      .chat-scroll { height: 520px; padding: 14px; }
+      .button-row { display: grid; grid-template-columns: 1fr 1fr; padding: 0 14px 14px; }
+      .button-row button { min-height: 46px; }
+      .chat-scroll { height: min(58vh, 520px); min-height: 360px; padding: 14px; }
       .terminal-panel { margin: 0 14px 14px; }
+      .terminal-output { height: 150px; font-size: 12px; }
       .terminal-topbar { grid-template-columns: auto 1fr; }
-      .terminal-clear { grid-column: 1 / -1; }
+      .terminal-clear { grid-column: 1 / -1; width: 100%; }
+      .manual-agent-form { margin: 12px; padding: 12px; }
+      .agents-list { padding: 12px; }
       .agent-grid { grid-template-columns: 1fr; }
+      .agent-head { grid-template-columns: 1fr auto auto; }
+      .agent-head .danger { grid-column: 1 / -1; width: 100%; }
+      .gear-popover { position: fixed; top: auto; left: 12px; right: 12px; bottom: 16px; width: auto; max-height: 74vh; overflow: auto; z-index: 30; }
+      .gear-popover::before { display: none; }
+      .gear-grid { grid-template-columns: 1fr; }
       .panel-title { padding: 13px 14px; }
+      .toast { width: calc(100% - 28px); text-align: center; border-radius: 18px; }
+    }
+
+    @media (max-width: 390px) {
+      .button-row { grid-template-columns: 1fr; }
+      .header-actions { flex-direction: column; }
+      .status-pill { white-space: normal; }
     }

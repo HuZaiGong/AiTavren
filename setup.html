@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生成酒馆设定 · AI 酒馆 Tavern Agents</title>
+  <link rel="stylesheet" href="setup.css" />
+</head>
+<body>
+  <main class="setup-shell">
+    <nav class="top-nav" aria-label="主导航">
+      <a class="brand-mark" href="index.html" aria-label="返回首页">
+        <span class="mark-icon">🍺</span>
+        <span>AI 酒馆</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">首页</a>
+        <a href="tavern.html">跳过设定</a>
+      </div>
+    </nav>
+
+    <section class="setup-hero">
+      <div>
+        <div class="eyebrow">Step 1 · 场景生成</div>
+        <h1>先让 GPT-5.5 为今晚的酒馆点燃第一盏灯。</h1>
+        <p>
+          描述你想要的氛围，或直接让系统推荐几个酒馆设定。选中任意设定后，会自动带入应用页的“全局场景设定”，然后开始多智能体对话。
+        </p>
+      </div>
+      <div class="skip-card">
+        <strong>想直接开始？</strong>
+        <p>你也可以跳过生成器，使用默认边境小镇雨夜酒馆设定。</p>
+        <a href="tavern.html">跳过，直接进入酒馆</a>
+      </div>
+    </section>
+
+    <section class="generator-panel">
+      <div class="prompt-box">
+        <label for="settingPrompt">描述你想要的酒馆</label>
+        <textarea id="settingPrompt" placeholder="例如：海底城市里的魔法酒馆，客人来自不同位面，今晚有人带来一枚会低语的珍珠。"></textarea>
+        <div class="button-row">
+          <button id="generateFromPromptBtn" onclick="generateSettingsFromPrompt()">按我的描述生成</button>
+          <button class="ghost" id="recommendBtn" onclick="recommendSettings()">推荐几个设定</button>
+          <button class="ghost" onclick="useRawPrompt()">直接使用我的描述</button>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-dot" id="statusDot"></div>
+        <div>
+          <strong id="setupStatus">等待你的灵感</strong>
+          <p>接口固定使用内置 API，模型为 <code>gpt-5.5</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section">
+      <div class="section-title">
+        <h2>可选酒馆设定</h2>
+        <span id="resultCount">0 个设定</span>
+      </div>
+      <div id="settingsGrid" class="settings-grid">
+        <div class="empty-state">
+          <span>🕯️</span>
+          <strong>还没有生成设定</strong>
+          <p>输入描述后生成，或点击“推荐几个设定”。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="setup.js"></script>
+</body>
+</html>
